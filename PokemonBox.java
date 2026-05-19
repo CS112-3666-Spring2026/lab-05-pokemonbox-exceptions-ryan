@@ -1,96 +1,97 @@
 public class PokemonBox {
+    public static final int DEFAULT_CAPACITY = 10;
 
-	// CONSTANT VARIABLES
-	public static final int DEFAULT_CAPACITY = 10;
+    private Pokemon[] caught;
+    private int numCaught;
 
-	// INSTANCE VARIABLES
-	private Pokemon[] caught;
-	private int numCaught;
+    public PokemonBox(Pokemon[] caught) {
+        if (caught == null || caught.length == 0) {
+            throw new IllegalArgumentException("Invalid Pokemon array provided to PokemonBox.");
+        }
 
-	// CONSTRUCTORS
-	public PokemonBox(Pokemon[] caught) {
-		if(caught == null || caught.length == 0) {
-			System.out.println("ERROR: Invalid Pokemon array provided to PokemonBox. Exiting program.");
-			System.exit(0);
-		}
-		this.numCaught = caught.length;
-		this.caught = this.deepCopyArray(caught, this.numCaught*2);
-	}
+        this.numCaught = caught.length;
+        this.caught = deepCopyArray(caught, numCaught * 2);
+    }
 
-	public PokemonBox() {
-		this.caught = new Pokemon[DEFAULT_CAPACITY];
-		this.numCaught = 0;
-	}
+    public PokemonBox() {
+        caught = new Pokemon[DEFAULT_CAPACITY];
+        numCaught = 0;
+    }
 
-	// ACCESSOR/GETTER METHODS
-	//returns -1 if not found
-	public int getLocation(String pokemonName) {
-		int location = -1, count = 0;
-		//loop until we reach end of array or we find item
-		while(count < this.numCaught && location == -1) {
-			if(this.caught[count].getName().equalsIgnoreCase(pokemonName)) {
-				//found pokemon!
-				location = count;
-			} else {
-				//didnt find pokemon, setup for next loop
-				count++;
-			}
-		}
-		return location;
-	}
+    public int getLocation(String pokemonName) {
+        int location = -1;
+        int count = 0;
 
-	public Pokemon getPokemon(int location) {
-		return this.caught[location];
-	}
+        while (count < numCaught && location == -1) {
+            if (caught[count].getName().equalsIgnoreCase(pokemonName)) {
+                location = count;
+            } else {
+                count++;
+            }
+        }
 
-	public int getNumCaught() {
-		return this.numCaught;
-	}
+        return location;
+    }
 
-	public boolean isEmpty() {
-		return this.numCaught == 0;
-	}
+    public Pokemon getPokemon(int location) {
+        if (location < 0 || location >= numCaught) {
+            throw new IndexOutOfBoundsException("Invalid Pokemon location.");
+        }
 
-	public boolean hasPokemon(String pokemonName) {
-		return this.getLocation(pokemonName) != -1;
-	}
+        return new Pokemon(caught[location]);
+    }
 
-	// MUTATOR/SETTER METHODS
-	public void add(Pokemon newPoke) {
-		//new pokemon,  add to partially filled array
-		//but first check if box is full
-		if(this.numCaught == this.caught.length) {
-			//if full, then grow array *2 and copy contents over
-			this.caught = this.deepCopyArray(this.caught, this.numCaught*2);
-		}
+    public int getNumCaught() {
+        return numCaught;
+    }
 
-		//then add new caught pokemon
-		this.caught[this.numCaught] = new Pokemon(newPoke);
-		this.numCaught++;
-	}
-	
-	// OTHER REQUIRED METHODS
-	public String toString() {
-		if(this.isEmpty()) {
-			return "This box is empty";
-		} else {
-			String all = "\t01. " + this.caught[0].toRow();
-			for(int i = 1; i < this.numCaught; i++) {
-				all += String.format("%n\t%02d. %s", i+1, this.caught[i].toRow());
-			}
+    public boolean isEmpty() {
+        return numCaught == 0;
+    }
 
-			return String.format("This box has %d Pokemon, which are:%n%s",
-				this.numCaught, all);
-		}
-	}
+    public boolean hasPokemon(String pokemonName) {
+        return getLocation(pokemonName) != -1;
+    }
 
-	private Pokemon[] deepCopyArray(Pokemon[] p, int newLength) {
-		Pokemon[] deepCopy = new Pokemon[newLength];
-		
-		for(int i = 0; i < p.length; i++) {
-			deepCopy[i] = new Pokemon(p[i]);
-		}
+    public void add(Pokemon newPoke) throws PokemonAlreadyExistsException {
+        if (newPoke == null) {
+            throw new IllegalArgumentException("Cannot add null Pokemon.");
+        }
 
-		return deepCopy;
-	}
+        if (hasPokemon(newPoke.getName())) {
+            throw new PokemonAlreadyExistsException(newPoke.getName() + " already exists in this Pokemon Box.");
+        }
+
+        if (numCaught == caught.length) {
+            caught = deepCopyArray(caught, numCaught * 2);
+        }
+
+        caught[numCaught] = new Pokemon(newPoke);
+        numCaught++;
+    }
+
+    @Override
+    public String toString() {
+        if (isEmpty()) {
+            return "This box is empty";
+        }
+
+        String all = "\t01. " + caught[0].toRow();
+
+        for (int i = 1; i < numCaught; i++) {
+            all += String.format("%n\t%02d. %s", i + 1, caught[i].toRow());
+        }
+
+        return String.format("This box has %d Pokemon, which are:%n%s", numCaught, all);
+    }
+
+    private Pokemon[] deepCopyArray(Pokemon[] p, int newLength) {
+        Pokemon[] deepCopy = new Pokemon[newLength];
+
+        for (int i = 0; i < numCaught; i++) {
+            deepCopy[i] = new Pokemon(p[i]);
+        }
+
+        return deepCopy;
+    }
 }
